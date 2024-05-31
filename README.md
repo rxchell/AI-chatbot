@@ -68,3 +68,105 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+
+# from https://medium.com/@deeksharungta/how-to-build-your-own-ai-chatbot-with-open-ai-api-cb779b03bae2
+
+App.js
+
+import React, { useState } from "react";
+import "./App.css";
+
+const App = () => {
+  const API_KEY = process.env.REACT_APP_OPEN_API_KEY; // Make sure your environment variable is prefixed with REACT_APP
+
+  // Setting the primary prompt as the initial state
+  const [messages, setMessages] = useState([
+    {
+      role: "system",
+      content: "Welcome! How can I help you today?",
+    },
+  ]);
+
+  const [isTyping, setIsTyping] = useState(false);
+
+  const chatData = async (userMessage) => {
+    try {
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [...messages, { role: "user", content: userMessage }],
+            temperature: 0.7,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Oops! Something went wrong while processing your request.");
+      }
+
+      const responseData = await response.json();
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", content: responseData.choices[0].message.content },
+      ]);
+    } catch (error) {
+      console.error("Error while fetching chat data:", error);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleSendMessage = (messageContent) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { role: "user", content: messageContent },
+    ]);
+    setIsTyping(true);
+    chatData(messageContent);
+  };
+
+  return (
+    <>
+      <div>
+        {messages.map((message, index) => (
+          <div key={index}>
+            <h3>{message.role}</h3>
+            <p>{message.content}</p>
+          </div>
+        ))}
+        {isTyping && <p>Bot is typing...</p>}
+      </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const input = e.target.input.value;
+          if (input.trim() !== "") {
+            handleSendMessage(input);
+            e.target.reset();
+          }
+        }}
+      >
+        <input
+          type="text"
+          name="input"
+          placeholder="Type your message..."
+          disabled={isTyping}
+        />
+        <button type="submit" disabled={isTyping}>
+          Send
+        </button>
+      </form>
+    </>
+  );
+}
+
+export default App;
