@@ -75,6 +75,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 App.js
 
+```javaScript
 import React, { useState } from "react";
 import "./App.css";
 
@@ -170,3 +171,4 @@ const App = () => {
 }
 
 export default App;
+```
